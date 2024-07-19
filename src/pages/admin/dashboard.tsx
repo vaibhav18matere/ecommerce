@@ -2,7 +2,6 @@ import AdminLayout from "@/components/layouts/admin-layout";
 import React from "react";
 import { MOCKDATA } from "@/lib/mockdata";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 const AdminDashboard = () => {
   return (
@@ -10,7 +9,7 @@ const AdminDashboard = () => {
       <AdminLayout>
         <div className="mt-28 p-10">
           <div className="my-6 flex w-full flex-row justify-end">
-            <Button size={"lg"}>Add New Product</Button>
+            
           </div>
           {MOCKDATA.map((product) => (
             <Link
