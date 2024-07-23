@@ -1,16 +1,8 @@
 import React from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { TrashIcon } from "@radix-ui/react-icons";
 import {
   Form,
   FormControl,
@@ -21,6 +13,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const formSchema = z.object({
   name: z.string().min(2).max(50),
@@ -31,7 +30,15 @@ const formSchema = z.object({
   price: z.coerce.number().default(0),
 });
 
-const ProductManageDialog = () => {
+const ProductManageDialog = ({
+  productId,
+  isOpen,
+  onClose,
+}: {
+  productId?: number;
+  isOpen?: boolean;
+  onClose?: (open: boolean) => void;
+}) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
@@ -41,13 +48,15 @@ const ProductManageDialog = () => {
   }
   return (
     <>
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button size={"lg"}>Add New Product</Button>
-        </DialogTrigger>
+      <Dialog open={Boolean(productId) || isOpen} onOpenChange={onClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Manage Products</DialogTitle>
+            <DialogTitle>
+              Manage Products
+              <Button className="ml-2 h-8 w-8 rounded-md bg-red-500 p-0.5 text-xl text-white">
+                <TrashIcon color="#fff" />
+              </Button>
+            </DialogTitle>
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -60,7 +69,10 @@ const ProductManageDialog = () => {
                     <FormItem>
                       <FormLabel>Product Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="enter product name here" {...field} />
+                        <Input
+                          placeholder="enter product name here"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
