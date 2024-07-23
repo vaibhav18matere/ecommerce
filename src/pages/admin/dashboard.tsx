@@ -1,21 +1,49 @@
-import AdminLayout from "@/components/layouts/admin-layout";
-import React from "react";
+"use-client";
+
+import React, { useState } from "react";
 import { MOCKDATA } from "@/lib/mockdata";
-import Link from "next/link";
+import ProductManageDialog from "@/components/product-manage-dialog";
+import AdminLayout from "@/components/layouts/admin-layout";
+import { Button } from "@/components/ui/button";
 
 const AdminDashboard = () => {
+  const [isCreateProductDialogueOpen, setIsCreateProductDialogueOpen] =
+    useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<
+    number | undefined
+  >(undefined);
+
   return (
     <>
       <AdminLayout>
+        <ProductManageDialog
+          productId={selectedProductId}
+          isOpen={isCreateProductDialogueOpen}
+          onClose={(open) => {
+            if (!open) {
+              setSelectedProductId(undefined);
+            }
+            setIsCreateProductDialogueOpen(open);
+          }}
+        />
         <div className="mt-28 p-10">
           <div className="my-6 flex w-full flex-row justify-end">
-            
+            <Button
+              size={"lg"}
+              onClick={() => {
+                setIsCreateProductDialogueOpen(true);
+              }}
+            >
+              Add New Product
+            </Button>
           </div>
           {MOCKDATA.map((product) => (
-            <Link
+            <button
               key={product.id}
-              href={`/${product.slug}`}
               className="flex max-w-96 flex-col items-start gap-4 rounded-xl border border-gray-300 bg-white p-4 shadow-lg hover:cursor-pointer hover:border-black"
+              onClick={() => {
+                setSelectedProductId(product.id);
+              }}
             >
               <div>
                 <img
@@ -27,7 +55,7 @@ const AdminDashboard = () => {
               <div>{product.name}</div>
               <div>{product.description}</div>
               <div>Available Quantitys : {product.quantityAvailable}</div>
-            </Link>
+            </button>
           ))}
         </div>
       </AdminLayout>
