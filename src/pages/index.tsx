@@ -1,9 +1,22 @@
+import { useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { MOCKDATA } from "@/lib/mockdata";
 import MainLayout from "@/components/layouts/main-layout";
+import { createClient } from "@/utils";
 
 export default function Home() {
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      console.log({ data, error });
+    };
+
+    getUser();
+  }, []);
+
   return (
     <>
       <Head>

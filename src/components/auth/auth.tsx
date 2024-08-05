@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "../ui/button";
 
 import {
@@ -25,32 +25,90 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { createClient } from "@/utils/index";
 
 const formSchema = z.object({
-  email: z.string().min(2).max(12),
-  password: z.string().min(6).max(20),
+  email: z.string().min(2).max(30),
+  password: z.string().min(6).max(30),
+  name: z.string().optional(),
 });
 
-const AuthForm = ({ formType }: { formType: "Login" | "Signup" }) => {
+const AuthForm = ({
+  formType,
+  onSuccess,
+}: {
+  formType: "Login" | "Signup";
+  onSuccess: () => void;
+}) => {
+  const supabase = createClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
       password: "",
+      name: "",
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit({
+    email,
+    password,
+    name,
+  }: z.infer<typeof formSchema>) {
     if (formType === "Login") {
-      console.log(values, "loggin in user");
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) {
+        console.error(error);
+        return alert(error.message);
+      }
+      onSuccess();
     } else {
-      console.log(values, "signing up user");
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+          },
+        },
+      });
+      if (!name) {
+        return alert("Name is required");
+      }
+      if (error) {
+        console.error(error);
+        return alert(error.message);
+      }
+      onSuccess();
     }
   }
   return (
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          {formType === "Signup" && (
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      placeholder="enter your name here"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
           <FormField
             control={form.control}
             name="email"
@@ -58,7 +116,7 @@ const AuthForm = ({ formType }: { formType: "Login" | "Signup" }) => {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="user@gmail.com" {...field} />
+                  <Input type="email" placeholder="user@gmail.com" {...field} />
                 </FormControl>
                 <FormDescription>
                   enter your registered email id
@@ -74,7 +132,7 @@ const AuthForm = ({ formType }: { formType: "Login" | "Signup" }) => {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input placeholder="xxxxx" {...field} />
+                  <Input type="password" {...field} />
                 </FormControl>
                 <FormDescription>enter your password here</FormDescription>
                 <FormMessage />
@@ -91,23 +149,30 @@ const AuthForm = ({ formType }: { formType: "Login" | "Signup" }) => {
   );
 };
 
-const Auth = () => {
+ const Auth = () => {
+  const [isAuthDialogueOpen, setIsAuthDialogueOpen] = useState(false);
   return (
     <div className="flex items-center space-x-3">
-      <Dialog>
+      <Dialog open={isAuthDialogueOpen} onOpenChange={setIsAuthDialogueOpen}>
         <DialogTrigger asChild>
           <Button variant="outline">Sign up</Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>sigup to continue shopping</DialogTitle>
+            <DialogTitle>signup to continue shopping</DialogTitle>
           </DialogHeader>
           <div>
-            <AuthForm formType={"Signup"} />
+            <AuthForm
+              formType={"Signup"}
+              onSuccess={() => {
+                setIsAuthDialogueOpen(false);
+                alert("Check email for confirmation");
+              }}
+            />
           </div>
         </DialogContent>
       </Dialog>
-      <Dialog>
+      <Dialog open={isAuthDialogueOpen} onOpenChange={setIsAuthDialogueOpen}>
         <DialogTrigger asChild>
           <Button variant="outline">Login</Button>
         </DialogTrigger>
@@ -116,7 +181,10 @@ const Auth = () => {
             <DialogTitle>Login to continue shopping</DialogTitle>
           </DialogHeader>
           <div>
-            <AuthForm formType={"Login"} />
+            <AuthForm
+              formType={"Login"}
+              onSuccess={() => setIsAuthDialogueOpen(false)}
+            />
           </div>
         </DialogContent>
       </Dialog>

@@ -4,12 +4,14 @@ import { type AppType } from "next/app";
 import { api } from "@/utils/api";
 
 import "@/styles/globals.css";
-
+import AuthContextProvider from "@/context/auth-context";
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
-    <div className={GeistSans.className}>
-      <Component {...pageProps} />
-    </div>
+    <AuthContextProvider>
+      <div className={GeistSans.className}>
+        <Component {...pageProps} />
+      </div>
+    </AuthContextProvider>
   );
 };
 
