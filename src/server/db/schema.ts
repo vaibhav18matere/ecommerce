@@ -3,34 +3,56 @@
 
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   index,
-  pgTableCreator,
-  serial,
+  integer,
+  pgTable,
+  text,
   timestamp,
+  uuid,
   varchar,
 } from "drizzle-orm/pg-core";
 
-/**
- * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
- * database instance for multiple projects.
- *
- * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
- */
-export const createTable = pgTableCreator((name) => `ecommerce_${name}`);
-
-export const posts = createTable(
-  "post",
+export const users = pgTable(
+  "users",
   {
-    id: serial("id").primaryKey(),
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
     name: varchar("name", { length: 256 }),
+    email: text("email").notNull().unique(),
+    // checking if user is admin or not to give certain permissions later
+    isAdmin: boolean("is_admin").default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date()
+      () => new Date(),
     ),
   },
   (example) => ({
     nameIndex: index("name_idx").on(example.name),
-  })
+  }),
 );
+
+export const products = pgTable("products", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  name: varchar("name", { length: 256 }),
+  description: varchar("description", { length: 256 }),
+  quantity: integer("quantity").notNull().default(0),
+  imageUrl: text("image_url").notNull(),
+  // slug: varchar("slug", { length: 20 }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  // updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
+  //   () => new Date(),
+  // ),
+});
+
+export const orders = pgTable("orders", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id),
+  productId: uuid("product_id").references(() => products.id),
+  address: text("address"),
+  paymentStatus: boolean("payment_status").default(false),
+  orderStatus: boolean("order_status").default(false),
+});
