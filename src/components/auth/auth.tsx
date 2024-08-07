@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Button } from "../ui/button";
 
 import {
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/utils/index";
+import { AuthContext } from "@/context/auth-context";
 
 const formSchema = z.object({
   email: z.string().min(2).max(30),
@@ -55,17 +56,7 @@ const AuthForm = ({
     password,
     name,
   }: z.infer<typeof formSchema>) {
-    if (formType === "Login") {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) {
-        console.error(error);
-        return alert(error.message);
-      }
-      onSuccess();
-    } else {
+    if (formType === "Signup") {
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -78,6 +69,16 @@ const AuthForm = ({
       if (!name) {
         return alert("Name is required");
       }
+      if (error) {
+        console.error(error);
+        return alert(error.message);
+      }
+      onSuccess();
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) {
         console.error(error);
         return alert(error.message);
@@ -103,6 +104,9 @@ const AuthForm = ({
                       {...field}
                     />
                   </FormControl>
+                  <FormDescription>
+                    enter your name
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -149,45 +153,74 @@ const AuthForm = ({
   );
 };
 
- const Auth = () => {
+const Auth = () => {
+  const { user } = useContext(AuthContext);
+  const supabase = createClient();
+
   const [isAuthDialogueOpen, setIsAuthDialogueOpen] = useState(false);
+  const [isLoginDialogueOpen, setLoginDialogueOpen] = useState(false);
   return (
     <div className="flex items-center space-x-3">
-      <Dialog open={isAuthDialogueOpen} onOpenChange={setIsAuthDialogueOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline">Sign up</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>signup to continue shopping</DialogTitle>
-          </DialogHeader>
-          <div>
-            <AuthForm
-              formType={"Signup"}
-              onSuccess={() => {
-                setIsAuthDialogueOpen(false);
-                alert("Check email for confirmation");
-              }}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={isAuthDialogueOpen} onOpenChange={setIsAuthDialogueOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline">Login</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Login to continue shopping</DialogTitle>
-          </DialogHeader>
-          <div>
-            <AuthForm
-              formType={"Login"}
-              onSuccess={() => setIsAuthDialogueOpen(false)}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+      {user && (
+        <Button
+          onClick={async () => {
+            // console.log("logging out after this");
+            await supabase.auth.signOut();
+            window.location.reload();
+          }}
+        >
+          Logout
+        </Button>
+      )}
+
+      {!user && (
+        <>
+          <Dialog
+            open={isAuthDialogueOpen}
+            onOpenChange={setIsAuthDialogueOpen}
+          >
+            <DialogTrigger asChild>
+              <Button variant="outline">Sign up</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>signup to continue shopping</DialogTitle>
+              </DialogHeader>
+              <div>
+                <AuthForm
+                  formType={"Signup"}
+                  onSuccess={() => {
+                    setIsAuthDialogueOpen(false);
+                    alert("Check email for confirmation");
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Dialog
+            open={isLoginDialogueOpen}
+            onOpenChange={setLoginDialogueOpen}
+          >
+            <DialogTrigger asChild>
+              <Button variant="outline">Login</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Login to continue shopping</DialogTitle>
+              </DialogHeader>
+              <div>
+                <AuthForm
+                  formType={"Login"}
+                  onSuccess={() => {
+                    setIsAuthDialogueOpen(false);
+                    window.location.reload();
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </div>
   );
 };

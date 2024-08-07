@@ -1,9 +1,28 @@
-import React, { createContext } from "react";
+import React, { createContext, useEffect, useState } from "react";
+import { createClient } from "@/utils";
+import { User } from "@supabase/supabase-js";
 
-const AuthContext = createContext(null);
+export const AuthContext =
+  createContext<{ user: User | null }>(null as any);
 
 const AuthContextProvider = ({ children }: React.PropsWithChildren) => {
-  return <AuthContext.Provider value={null}>{children}</AuthContext.Provider>;
+  const [user, setUser] = useState<User | null>(null);
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      // console.log({ data, error });
+      setUser(data.user);
+    };
+
+    getUser();
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>
+  );
 };
 
 export default AuthContextProvider;
