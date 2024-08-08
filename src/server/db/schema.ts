@@ -1,7 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
-  index,
   integer,
   pgTable,
   text,
@@ -9,6 +8,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -31,6 +31,8 @@ export const products = pgTable("products", {
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
 });
+
+export const productInsertSchema = createInsertSchema(products);
 
 export const orders = pgTable("orders", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
