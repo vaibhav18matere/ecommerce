@@ -4,10 +4,19 @@ import Link from "next/link";
 import { MOCKDATA } from "@/lib/mockdata";
 import MainLayout from "@/components/layouts/main-layout";
 import { AuthContext } from "@/context/auth-context";
+import { api } from "@/utils/api";
 
 export default function Home() {
   const { user } = useContext(AuthContext);
-  console.log(user);
+  console.log("checking user", user);
+
+  // console.log("!!!...console from frontend....!");
+
+  const callDemoApi = api.post.hello.useQuery({ text: "hello vaibhav!" });
+  const callAnotherDemoApi = api.post.something.useQuery();
+
+  console.log(callAnotherDemoApi);
+
   return (
     <>
       <Head>
