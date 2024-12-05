@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { api } from "@/utils/api";
 
 const formSchema = z.object({
   name: z.string().min(2).max(50),
@@ -42,6 +43,8 @@ const ProductManageDialog = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
+
+  const createProduct = api.admin.createProduct.useMutation();
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);

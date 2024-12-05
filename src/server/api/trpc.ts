@@ -14,6 +14,8 @@ import { ZodError } from "zod";
 import { db } from "@/server/db";
 import createClient from "@/utils/supabase-api-client";
 import { User } from "@supabase/supabase-js";
+import { users } from "../db/schema";
+import { eq } from "drizzle-orm";
 
 /**
  * 1. CONTEXT
@@ -126,4 +128,22 @@ export const protectedProcedure = t.procedure.use((opts) => {
       user: opts.ctx.user,
     },
   });
+});
+
+// to check if user is admin or not
+
+export const adminProcedure = protectedProcedure.use(async (opts) => {
+  const [foundUser] = await opts.ctx.db
+    .select()
+    .from(users)
+    .where(eq(users.id, opts.ctx.user.id))
+    .limit(1);
+
+  // if user is not an admin
+
+  if (!foundUser?.isAdmin) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Not allowed" });
+  }
+
+  return opts.next();
 });
